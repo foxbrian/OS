@@ -7,6 +7,7 @@ class Binary_Tree:
             self.parent = None
             self.left = None
             self.right = None
+            
 
         def add_left(self,left):
             self.left = left
@@ -49,6 +50,16 @@ class Binary_Tree:
     def has_left(self):
         return not self.root.left == None
 
+    def evaluate(self):
+        '''
+        assuming the tree is valid
+        tree is valid if every leaf is a value and root is an operation
+        '''
+        if isinstance(self.root.data,float)or isinstance(self.root.data,int):
+            return self.root.data
+        if(isinstance(self.root.data,Operation)):
+            return self.root.data.evaluate(self.left().evaluate(),self.right().evaluate())
+
 class Operation:
 
     def __init__(self, op):
@@ -63,6 +74,9 @@ class Operation:
             '+':left+right,
             '-':left-right,
         }[self.op]
+
+    def __str__(self):
+        return self.op
 
 def print_tree(tree):
    
@@ -100,28 +114,50 @@ def preop_traversal(tree):
     if tree.has_right():
          preop_traversal(tree.right())
 
-def evaluate(tree):
-    '''
-    assuming the tree is valid
-    tree is valid if every leaf is a value and root is an operation
-    '''
-    if(type(tree.root.data,Operation)):
-        return tree.root.data.evaluate 
+def construct_tree(expression):
+    sanitized = []
+    n=""
+    num = {'0','1','2','3','4','5','6','7','8','9','.'}
+    ops = {'^','*','/','+','-'}
+    for char in expression :
+        if char in num:
+            n.append(char)
+        if char in ops:
+            if len(n)!=0:
+                sanitized.append(float(n))
+                n=""
+            sanitize.append(Operation(char))
+    tree = Binary_Tree(sanitized.pop(0))
+    for element in sanitized:
+        _add_element(tree,element)
 
-if __name__ == '__main__':
-    tree = Binary_Tree('3')
-    tree.right_parent('*')
-    tree.add_right('4')
-    tree.right_parent('-')
-    tree.add_right('2')
-    '''
+def _add_element(tree,element):
+    if isinstance(tree.root.data,float):
+        if isinstance(element,float):
+            #this shouldn't be possible
+            raise Exception('bad input')
+        tree.right_parent(element)
+    else:
+        if isinstance(element,float):
+             tree.add_right(element)
+        else:
+            tree.right_parent
+
+    
+
+ __name__ == '__main__':
+    tree = Binary_Tree(3)
+    tree.right_parent(Operation('*'))
+    tree.add_right(4)
+    tree.right_parent(Operation('-'))
+    tree.add_right(2)
+    
     preop_traversal(tree)
     print("")
     postop_traversal(tree)
     print("")
     inorder_traversal(tree)
     print("")
-    '''
-    print(Operation('-').evaluate(3,2))
+    print(tree.evaluate())
 
 
