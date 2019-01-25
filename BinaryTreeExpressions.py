@@ -10,6 +10,7 @@ class Binary_Tree:
             
 
         def add_left(self,left):
+            
             self.left = left
             
 
@@ -29,10 +30,16 @@ class Binary_Tree:
         return Binary_Tree(self.root.right)
 
     def add_left(self,data):
-        self.root.add_left(self._Node(data))
+        if isinstance(data,Binary_Tree):
+            self.root.add_left(data.root)
+        else:
+            self.root.add_left(self._Node(data))
     
     def add_right(self,data):
-        self.root.add_right(self._Node(data))
+        if isinstance(data,Binary_Tree):
+            self.root.add_right(data.root)
+        else:
+            self.root.add_right(self._Node(data))
     
     def right_parent(self,data):
         temp = self._Node(data)
@@ -75,6 +82,11 @@ class Operation:
             '-':left-right,
         }[self.op]
 
+    def equals(self,char):
+        if self.op == char:
+            return True
+        return False
+
     def __str__(self):
         return self.op
 
@@ -94,70 +106,148 @@ def _print_tree(tree,level):
         _print_tree(tree.right(),level+1)
 
 def inorder_traversal(tree):
+    s = [""]
+    _inorder_traversal(tree,s)
+    return s[0]
+
+def _inorder_traversal(tree,s):
     if tree.has_left():
-        inorder_traversal(tree.left())
-    print(tree.root.data,end=" ")
+        _inorder_traversal(tree.left(),s)
+    s[0]= s[0]+ tree.root.data.__str__()
     if tree.has_right():
-         inorder_traversal(tree.right())
+        _inorder_traversal(tree.right(),s)
 
 def postop_traversal(tree):
+    s = [""]
+    _postop_traversal(tree,s)
+    return s[0]
+
+def _postop_traversal(tree,s):
     if tree.has_left():
-        postop_traversal(tree.left())
+        _postop_traversal(tree.left(),s)
     if tree.has_right():
-         postop_traversal(tree.right())
-    print(tree.root.data,end=" ")
+        _postop_traversal(tree.right(),s)
+    s[0] = s[0] + tree.root.data.__str__()
 
 def preop_traversal(tree):
-    print(tree.root.data,end=" ")
-    if tree.has_left():
-        preop_traversal(tree.left())
-    if tree.has_right():
-         preop_traversal(tree.right())
+    s = [""]
+    _preop_traversal(tree,s)
+    return s[0]
 
-def construct_tree(expression):
-    sanitized = []
+def _preop_traversal(tree):
+    s[0]=s[0]+tree.root.data.__str__()
+    if tree.has_left():
+        _preop_traversal(tree.left(),s)
+    if tree.has_right():
+        _preop_traversal(tree.right(),s)
+
+def construct_list(string):
+    expressions = []
     n=""
     num = {'0','1','2','3','4','5','6','7','8','9','.'}
     ops = {'^','*','/','+','-'}
-    for char in expression :
+    for char in string :
         if char in num:
-            n.append(char)
-        if char in ops:
+            n = n + char
+        elif char in ops:
             if len(n)!=0:
-                sanitized.append(float(n))
-                n=""
-            sanitize.append(Operation(char))
-    tree = Binary_Tree(sanitized.pop(0))
-    for element in sanitized:
-        _add_element(tree,element)
+                expressions.append(float(n))
+                n = ""
+            expressions.append(Operation(char))
+    if len(n)!=0:
+        expressions.append(float(n))
+    return expressions
 
-def _add_element(tree,element):
-    if isinstance(tree.root.data,float):
-        if isinstance(element,float):
-            #this shouldn't be possible
-            raise Exception('bad input')
-        tree.right_parent(element)
-    else:
-        if isinstance(element,float):
-             tree.add_right(element)
-        else:
-            tree.right_parent
+def construct_tree(expressions):
+    i=0
+    while i<len(expressions):
+        
+        if(expressions[i]=='('):
+            for exp ,j in enumerate(expressions):
+                if exp ==')':
+                    expresions[i:j+1] = [construct_tree(expressions[i+1,j])]
+                    break
+            i = i+1
+            continue
 
+        if(expressions[i]=='['):
+            for exp ,j in enumerate(expressions):
+                if exp ==']':
+                    expresions[i:j+1] = [construct_tree(expressions[i+1,j])]
+                    break
+            i = i+1
+            continue
+            
+        if(expressions[i]=='{'):
+            for exp ,j in enumerate(expressions):
+                if exp =='}':
+                    expresions[i:j+1] = [construct_tree(expressions[i+1,j])]
+                    break
+            i = i+1
+            continue
+        i = i+1
+
+    i=0
+    while i < len(expressions):
+        if isinstance(expressions[i],Operation) and expressions[i].equals('^'):
+            expressions[i-1:i+2] = [_construct_tree(expressions[i-1:i+2])]
+            continue
+        i=i+1
+    i=0
+    while i < len(expressions):
+        if isinstance(expressions[i],Operation) and expressions[i].equals('*'):
+            expressions[i-1:i+2] = [_construct_tree(expressions[i-1:i+2])]
+            continue
+        i=i+1
+    i=0
+    while i < len(expressions):
+        if isinstance(expressions[i],Operation) and expressions[i].equals('/'):
+            expressions[i-1:i+2] = [_construct_tree(expressions[i-1:i+2])]
+            continue
+        i=i+1
+    i=0
+    while i < len(expressions):
+        if isinstance(expressions[i],Operation) and expressions[i].equals('+'):
+            expressions[i-1:i+2] = [_construct_tree(expressions[i-1:i+2])]
+            continue
+        i=i+1
+    i=0
+    while i < len(expressions):
+        if isinstance(expressions[i],Operation) and expressions[i].equals('-'):
+            expressions[i-1:i+2] = [_construct_tree(expressions[i-1:i+2])]
+            continue
+        i=i+1
+
+    return expressions[0]
+
+
+def _construct_tree(expressions):
+    '''
+    only accepts 3 length lists in the form value,operation,value
+    '''
+
+    tree = Binary_Tree(expressions[1])
+    tree.add_left(expressions[0])
+    tree.add_right(expressions[2])
+
+    return tree
+
+if __name__ == '__main__':
+    tree = construct_tree(construct_list("(3+2)/5"))
     
-
- __name__ == '__main__':
+    '''
     tree = Binary_Tree(3)
     tree.right_parent(Operation('*'))
     tree.add_right(4)
     tree.right_parent(Operation('-'))
     tree.add_right(2)
-    
     preop_traversal(tree)
     print("")
     postop_traversal(tree)
     print("")
-    inorder_traversal(tree)
-    print("")
+    '''
+    print(inorder_traversal(tree))
+
     print(tree.evaluate())
 
 
