@@ -1,11 +1,56 @@
 #!/usr/bin/python
 
 import sys
+import tkinter as tk
 import tkinter 
 
 help_menu = """
 
 """
+
+
+class Application(tk.Frame):
+    def __init__(self,master=None):
+        super().__init__(master)
+        self.pack()
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.submit = tk.Button(self)
+        self.submit["text"] = "Submit"
+        self.submit["command"] = self._display_result
+
+        self.eq_field = tk.Entry(self)
+        self.eq_field.bind("<Return>",self.display_result)
+        
+        self.label = tk.Label(self)
+        self.label["text"]="Equation: "
+
+        self.result = tk.Label(self)
+        self.result["justify"] = 'left'
+
+        self.orientation=tk.Listbox(self)
+        for item in ["horizontal view","vertical view"]:self.orientation.insert(tk.END,item)
+
+        self.label.pack(side="top")
+        self.eq_field.pack(side="top")
+        self.submit.pack(side="top")
+        self.result.pack(side="left",expand=1)
+        self.orientation.pack(side="bottom")
+
+    def _display_result(self):
+        self.display_result(self.eq_field.get())
+
+    def display_result(self,text):
+        try:
+            tree = construct_tree(construct_list(text))
+        except:
+            return None
+        
+        tree_view = print_horizontal(tree) if self.orientation.curselection()[0] != 1  else print_tree(tree)
+        output = tree_view +"\nPre-Order: \t"+preop_traversal(tree)+"\nPost-Order: \t"+postop_traversal(tree)+"\nResult: \t\t" + tree.evaluate().__str__()
+        self.result['text'] =output 
+
 
 
 class Binary_Tree:
@@ -340,7 +385,12 @@ if __name__ == '__main__':
             exit()
         results(tree)
         exit()
-
+    
+    root = tk.Tk()
+    app = Application(master = root)
+    app.mainloop()
+    
+    '''
     while(True):
         
         text = input("Enter Equation: ")
@@ -354,6 +404,7 @@ if __name__ == '__main__':
             continue
         
         results(tree)
+    '''
 
 
 
