@@ -1,5 +1,12 @@
 #!/usr/bin/python
 
+import sys
+
+help_menu = """
+
+"""
+
+
 class Binary_Tree:
     class _Node:
         def __init__(self,data):
@@ -66,6 +73,9 @@ class Binary_Tree:
             return self.root.data
         if(isinstance(self.root.data,Operation)):
             return self.root.data.evaluate(self.left().evaluate(),self.right().evaluate())
+
+    def __str__(self):
+        return self.root.data.__str__()
 
 class Operation:
 
@@ -137,7 +147,25 @@ def _print_tree(tree):
                     levels[i+1].append(None)
         i = i+1
     return levels[:-1]
-    
+
+def print_horizontal(tree):
+    levels = _print_tree(tree)
+    strings = []
+    line = 1
+    while len(levels[-1])>0:
+        spaces = 0
+        while (line >> spaces)&1 ==0 :
+            spaces = spaces + 1
+        t = levels[-(spaces+1)].pop()
+        s = "\t"*(len(levels)-spaces-1) + t.__str__() if t != None else " "
+        strings.append(s)
+        line = line+1
+    output = ""
+    for s in strings:
+        output = output + s + "\n"
+
+    return output
+
 def has_nonNone(l):
     for e in l:
         if e != None:
@@ -207,6 +235,8 @@ def construct_list(string):
 def construct_tree(expressions):
     i=0
     while i<len(expressions):
+        if(expressions[i] in {')',']','}'}):
+            raise Exception("unbalanced brackets")
         if(expressions[i]=='('):
             j=i+1
             while j < len(expressions):
@@ -214,6 +244,8 @@ def construct_tree(expressions):
                     expressions[i:j+1] = [construct_tree(expressions[i+1:j])]
                     break
                 j=j+1
+            else:
+                raise Exception("unbalanced brackets")
             i = i+1
             continue
 
@@ -224,6 +256,8 @@ def construct_tree(expressions):
                     expressions[i:j+1] = [construct_tree(expressions[i+1:j])]
                     break
                 j=j+1
+            else:
+                raise Exception("unbalanced brackets")
             i = i+1
             continue
             
@@ -234,6 +268,8 @@ def construct_tree(expressions):
                     expressions[i:j+1] = [construct_tree(expressions[i+1:j])]
                     break
                 j=j+1
+            else:
+                raise Exception("unbalanced brackets")
             i = i+1
             continue
         i = i+1
@@ -283,14 +319,40 @@ def _construct_tree(expressions):
 
     return tree
 
+
+def results(tree):
+    print(print_horizontal(tree))
+    print("Preorder: \t"+preop_traversal(tree))
+    print("Postorder: \t"+postop_traversal(tree))
+    print("Result: \t" + tree.evaluate().__str__())
+
 if __name__ == '__main__':
-    tree = construct_tree(construct_list("(3+2)/5+5/(3-2)"))
-    ''' 
-    print(inorder_traversal(tree))
-    print(preop_traversal(tree))
-    print(postop_traversal(tree))
-    '''
-    print(print_tree(tree))
-    print(tree.evaluate())
+    
+    if len(sys.argv)>1:
+        if sys.argv[1] in {'-h','--help'}:
+            print(help_menu)
+            exit()
+        try:
+            tree = construct_tree(construct_list(sys.argv[1]))
+        except:
+            print(help_menu)
+            exit()
+        results(tree)
+        exit()
+
+    while(True):
+        
+        text = input("Enter Equation: ")
+        if(text.upper()=="EXIT"):
+            break
+
+        try:
+            tree = construct_tree(construct_list(text))
+        except:
+            print("Unbalanced Brackets")
+            continue
+        
+        results(tree)
+
 
 
