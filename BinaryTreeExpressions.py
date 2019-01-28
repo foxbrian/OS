@@ -88,22 +88,61 @@ class Operation:
         return False
 
     def __str__(self):
-        return self.op
+        return self.op 
+
+def trim(s):
+    chars = list(s)
+    for i in range(len(s)-1,-1,-1):
+        if not (chars[i] == " " or chars[i]=="\t"):
+            string = ""
+            for char in chars[:i+1]:
+                string = string + char
+            return string
+            
+    return ""
 
 def print_tree(tree):
-   
-    print(tree.root.data)
-    if(tree.has_left()):
-        _print_tree(tree.left(),1)
-    if(tree.has_right()):
-        _print_tree(tree.right(),1)
+    levels = _print_tree(tree)
+    strings = []
+    tabs = 0
+    for i in range(len(levels)):
+        strings.append(tabs*"\t" )
+        tabs = tabs*2+1
+        for t in levels[-(i+1)]:
+            strings[i] = strings[i] +(t.root.data.__str__() if isinstance(t,Binary_Tree) else "") + (tabs+1)*"\t"
+    
+    s = ""
+    for i in range(len(strings)-1,-1,-1):
+        s = s+ trim(strings[i])+ 2*"\n"
+    return s
 
-def _print_tree(tree,level):
-    print("  "*level+tree.root.data)
-    if(tree.has_left()):
-        _print_tree(tree.left(),level+1)
-    if(tree.has_right()):
-        _print_tree(tree.right(),level+1)
+def _print_tree(tree):
+    levels = []
+    levels.append([tree])
+    i =0
+    while has_nonNone(levels[i]):
+        levels.append([])
+        for t in levels[i]:
+            if t == None:
+                levels[i+1].append(None)
+                levels[i+1].append(None)
+            else:
+                if t.has_left():
+                    levels[i+1].append(t.left())
+                else: 
+                    levels[i+1].append(None)
+                if t.has_right():
+                    levels[i+1].append(t.right())
+                else:
+                    levels[i+1].append(None)
+        i = i+1
+    return levels[:-1]
+    
+def has_nonNone(l):
+    for e in l:
+        if e != None:
+            return True
+    return False
 
 def inorder_traversal(tree):
     s = [""]
@@ -113,7 +152,7 @@ def inorder_traversal(tree):
 def _inorder_traversal(tree,s):
     if tree.has_left():
         _inorder_traversal(tree.left(),s)
-    s[0]= s[0]+ tree.root.data.__str__()
+    s[0]= s[0]+ tree.root.data.__str__()+ " "
     if tree.has_right():
         _inorder_traversal(tree.right(),s)
 
@@ -127,15 +166,15 @@ def _postop_traversal(tree,s):
         _postop_traversal(tree.left(),s)
     if tree.has_right():
         _postop_traversal(tree.right(),s)
-    s[0] = s[0] + tree.root.data.__str__()
+    s[0] = s[0] + tree.root.data.__str__()+" "
 
 def preop_traversal(tree):
     s = [""]
     _preop_traversal(tree,s)
     return s[0]
 
-def _preop_traversal(tree):
-    s[0]=s[0]+tree.root.data.__str__()
+def _preop_traversal(tree,s):
+    s[0]=s[0]+tree.root.data.__str__()+" "
     if tree.has_left():
         _preop_traversal(tree.left(),s)
     if tree.has_right():
@@ -146,6 +185,7 @@ def construct_list(string):
     n=""
     num = {'0','1','2','3','4','5','6','7','8','9','.'}
     ops = {'^','*','/','+','-'}
+    groupers = {'(',')','[',']','{','}'}
     for char in string :
         if char in num:
             n = n + char
@@ -154,35 +194,46 @@ def construct_list(string):
                 expressions.append(float(n))
                 n = ""
             expressions.append(Operation(char))
+        elif char in groupers:
+            if len(n)!=0:
+                expressions.append(float(n))
+                n=""
+            expressions.append(char)
     if len(n)!=0:
         expressions.append(float(n))
+    
     return expressions
 
 def construct_tree(expressions):
     i=0
     while i<len(expressions):
-        
         if(expressions[i]=='('):
-            for exp ,j in enumerate(expressions):
-                if exp ==')':
-                    expresions[i:j+1] = [construct_tree(expressions[i+1,j])]
+            j=i+1
+            while j < len(expressions):
+                if expressions[j] ==')':
+                    expressions[i:j+1] = [construct_tree(expressions[i+1:j])]
                     break
+                j=j+1
             i = i+1
             continue
 
         if(expressions[i]=='['):
-            for exp ,j in enumerate(expressions):
-                if exp ==']':
-                    expresions[i:j+1] = [construct_tree(expressions[i+1,j])]
+            j=i+1
+            while j < len(expressions):
+                if expressions[j] ==']':
+                    expressions[i:j+1] = [construct_tree(expressions[i+1:j])]
                     break
+                j=j+1
             i = i+1
             continue
             
         if(expressions[i]=='{'):
-            for exp ,j in enumerate(expressions):
-                if exp =='}':
-                    expresions[i:j+1] = [construct_tree(expressions[i+1,j])]
+            j=i+1
+            while j < len(expressions):
+                if expressions[j] =='}':
+                    expressions[i:j+1] = [construct_tree(expressions[i+1:j])]
                     break
+                j=j+1
             i = i+1
             continue
         i = i+1
@@ -233,21 +284,13 @@ def _construct_tree(expressions):
     return tree
 
 if __name__ == '__main__':
-    tree = construct_tree(construct_list("(3+2)/5"))
-    
-    '''
-    tree = Binary_Tree(3)
-    tree.right_parent(Operation('*'))
-    tree.add_right(4)
-    tree.right_parent(Operation('-'))
-    tree.add_right(2)
-    preop_traversal(tree)
-    print("")
-    postop_traversal(tree)
-    print("")
-    '''
+    tree = construct_tree(construct_list("(3+2)/5+5/(3-2)"))
+    ''' 
     print(inorder_traversal(tree))
-
+    print(preop_traversal(tree))
+    print(postop_traversal(tree))
+    '''
+    print(print_tree(tree))
     print(tree.evaluate())
 
 
