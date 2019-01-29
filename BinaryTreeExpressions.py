@@ -5,6 +5,18 @@ import tkinter as tk
 import tkinter 
 
 help_menu = """
+NAME
+    BinaryTreeExpressions - A python based utility to represent simple equations as binary trees
+
+SYNOPSIS
+    BinaryTreeExpressions [-h|--help] ["equation"]
+
+DESCRIPTION
+    BinaryTreeExpressions accepts an equation and represents it as a binary tree
+
+COMMAND LINE OPTIONS
+    -h|--help   Display this text
+
 
 """
 
@@ -18,10 +30,10 @@ class Application(tk.Frame):
     def create_widgets(self):
         self.submit = tk.Button(self)
         self.submit["text"] = "Submit"
-        self.submit["command"] = self._display_result
+        self.submit["command"] = self.display_result
 
         self.eq_field = tk.Entry(self)
-        self.eq_field.bind("<Return>",self.display_result)
+        self.eq_field.bind("<Return>",self._display_result)
         
         self.label = tk.Label(self)
         self.label["text"]="Equation: "
@@ -38,16 +50,17 @@ class Application(tk.Frame):
         self.result.pack(side="left",expand=1)
         self.orientation.pack(side="bottom")
 
-    def _display_result(self):
-        self.display_result(self.eq_field.get())
+    def _display_result(self,event):
+        self.display_result()
 
-    def display_result(self,text):
+    def display_result(self):
+        text = self.eq_field.get()
         try:
             tree = construct_tree(construct_list(text))
         except:
             return None
         
-        tree_view = print_horizontal(tree) if self.orientation.curselection()[0] != 1  else print_tree(tree)
+        tree_view = print_horizontal(tree) if self.orientation.curselection() == () or self.orientation.curselection()[0] != 1  else print_tree(tree)
         output = tree_view +"\nPre-Order: \t"+preop_traversal(tree)+"\nPost-Order: \t"+postop_traversal(tree)+"\nResult: \t\t" + tree.evaluate().__str__()
         self.result['text'] =output 
 
@@ -130,13 +143,18 @@ class Operation:
             self.op = op
 
     def evaluate(self,left,right):
-        return{
-            '^':left**right,
-            '*':left*right,
-            '/':left/right,
-            '+':left+right,
-            '-':left-right,
-        }[self.op]
+        
+        if(self.equals('^')):
+            return left**right
+        if self.equals('*'):
+            return left*right
+        if self.equals('/'):
+            return left/right
+        if self.equals('+'):
+            return left+right
+        if self.equals('-'):
+            return left-right
+        
 
     def equals(self,char):
         if self.op == char:
