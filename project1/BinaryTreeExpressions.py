@@ -2,7 +2,6 @@
 
 import sys
 import tkinter as tk
-import tkinter 
 
 help_menu = """
 NAME
