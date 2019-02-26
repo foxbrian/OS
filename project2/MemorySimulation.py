@@ -305,10 +305,11 @@ class Bar():
         self.canvas=canvas
         self.partitions = [] #list of the start of partitions in order
         self.filled = [] #list of amount filled per partion in order 
+        self.labels= []
 
     #draws using the values in partitions and filled as pixel values
     #this means the values have to be calculated before they get to this 
-    def draw(self,labels=[]):
+    def draw(self):
         self.canvas.create_rectangle(self.x,
                 self.y,
                 self.x+self.width,
@@ -320,16 +321,20 @@ class Bar():
                     self.x+self.width-1,
                     self.y+self.partitions[i+1] if i+1 != len(self.partitions) else self.y+self.height,
                     fill="#505050")
-            
+        label = 0   
         for i in range(len(self.filled)):
             if self.filled[i]==0:
                 continue
+
             self.canvas.create_rectangle(self.x+3,
                     self.y+self.partitions[i]+3,
                     self.x+self.width-3,
                     self.y+self.partitions[i]+self.filled[i]-2,
                     fill="#de9030",
                     outline="#202020")
+            self.canvas.create_text(self.x+4,self.y+self.partitions[i]+4,anchor="nw",text=str(self.labels[label]))
+            label = label+1
+
 
 class Application(tk.Frame):
     def __init__(self,master=tk.Tk()):
@@ -372,7 +377,7 @@ class Application(tk.Frame):
         self.canvas = tk.Canvas(self.window,height=440,width=510)
         self.canvas.pack(side=tk.RIGHT);
 
-        self.canvas.create_text(40,0,anchor="nw",text="Fixed")
+        self.canvas.create_text(25,0,anchor="nw",text="Fixed: ")
 
         self.fixed_first_bar = Bar(self.canvas,25,27)
         self.canvas.create_text(25,12,anchor="nw",text="First")
@@ -386,7 +391,7 @@ class Application(tk.Frame):
         self.fixed_worst_bar = Bar(self.canvas,205,27)
         self.canvas.create_text(205,12,anchor="nw",text="Worst")
 
-        self.canvas.create_text(280,0,anchor="nw",text="Dynamic")
+        self.canvas.create_text(265,0,anchor="nw",text="Dynamic: ")
 
         self.dyn_first_bar = Bar(self.canvas,265,27)
         self.canvas.create_text(265,12,anchor="nw",text="First")
@@ -495,6 +500,16 @@ class Application(tk.Frame):
                 for part in self.dyn_next.partitions ]
         self.dyn_worst_bar.filled = [Math.floor(self.dyn_worst_bar.height*part.occupied/self.dyn_worst.size) 
                 for part in self.dyn_worst.partitions ]
+
+        self.fixed_first_bar.labels = [part.job_num for part in self.fixed_first.partitions if part.busy ]
+        self.fixed_best_bar.labels =  [part.job_num for part in self.fixed_best.partitions if part.busy ]
+        self.fixed_next_bar.labels = [part.job_num for part in self.fixed_next.partitions if part.busy ]
+        self.fixed_worst_bar.labels = [part.job_num for part in self.fixed_worst.partitions if part.busy ]
+        self.dyn_first_bar.labels = [part.job_num for part in self.dyn_first.partitions if part.busy ]
+        self.dyn_best_bar.labels = [part.job_num for part in self.dyn_best.partitions if part.busy ]
+        self.dyn_next_bar.labels = [part.job_num for part in self.dyn_next.partitions if part.busy ]
+        self.dyn_worst_bar.labels = [part.job_num for part in self.dyn_worst.partitions if part.busy ]
+
     
     def draw_bars(self):
         self.fixed_first_bar.draw()
@@ -579,8 +594,14 @@ class Application(tk.Frame):
         self.build_bars()
         self.draw_bars()
 
-    def trash(self,num):
-        self.deallocate_all(num)
+    def trash(self):
+        try:
+            num = int(self.deallocate_size.get())
+            self.deallocate_all(num)
+        except:
+            pass
+        self.build_bars()
+        self.draw_bars()
 
 if(__name__=="__main__"):
     app = Application()
