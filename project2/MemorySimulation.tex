@@ -6,7 +6,7 @@
 \begin{document}
 \maketitle
 \section{About}
-
+Visualizes the running state of main memory partition tables. Concurrently maintains 8 different partitioning schemes.
 \section{Opening the Program}
 
 \subsection{Linux}
@@ -14,14 +14,29 @@
 \begin{itemize}
 \item Python 3.0 or later
 \end{itemize}
-To open the program double click on the file MemorySimulation.pyw or from the terminal type python /path/to/MemorySimulation.pyw
+From the terminal type python /path/to/MemorySimulation.py
 \subsection{Windows}
 \textbf{Dependencies}
 \begin{itemize}
 \item Python 3.0 or later
 \end{itemize}
-To open the program double click on the file MemorySimulation.pyw or from the command line type python /path/to/MemorySimulation.pyw
+To open the program double click on the file MemorySimulation.pyw or from the command line type python path\textbackslash{}to\textbackslash{}MemorySimulation.py
 \section{How to Use}
+The program will always maintain a simulated memory table for each of the 8 allocation methods. every command given to the program will affect each of the tables. 
+\subsection{Size of Memory}
+the "Size of Memory" field will hold a value for the total number of units the memory table can hold. The value will not be used until the next reset of the tables. The default value is 1000. 1000 will be used if the field is blank or if there is son non-numeric character in the field.
+\subsection{Size of Fixed Partitions}
+Like "Size of Memory" the value of the "Size of Fixed Partitions" field will not be  used until the tables are reset. This field can contain a single value or many values separated by commas. If the total amount of memory allocated by the given list of values is less than the total amount of memory available, the values will be repeated by the order given in this field
+\subsection{Radio Buttons}
+Clicking on one of the buttons on the left of the screen will give details about the corresponding memory table.
+\subsection{Bars}
+The bars visualize each of the memory tables. The proportion of filled to not filled space in the bar is not exact. Exact numbers are in the details accessed by the radio buttons. Orange rectangles represent filled memory space. Gray Rectangles represent partitions. The number on the orange rectangle is the ID number of the job occupying that memory partition.
+\subsection{Allocate}
+When the allocate button is pressed it will try to allocate a job of size in the field to its right. If the field is blank or un-parsable it will allocate a job of size 100.
+\subsection{Deallocate}
+The deallocate button will attempt to deallocate the job with the ID that is in the field to the buttons right. If it is blank or un-parsable nothing will be deallocated.
+\subsection{Play}
+Toggling this option on will start randomly allocation and deallocating jobs.
 \section{Contact}
 Code and manual written by Brian Fox(fox.brian59@gmail.com).
 \end{document}
