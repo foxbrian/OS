@@ -23,6 +23,8 @@ COMMAND LINE OPTIONS
 ###############
 #Memory Tables#
 ###############
+
+#single partiton in the memory table
 class _Unit:
     def __init__(self,size,start,num,busy=False,occupied=0):
         self.size=size
@@ -34,7 +36,7 @@ class _Unit:
     def free(self):
         self.occupied = 0
         self.busy = False
-
+#super class with no implimented methods
 class MemoryTable:
     def __init__(self,size):
         self.size = size
@@ -49,6 +51,8 @@ class MemoryTable:
     def deallocate(self,index):
         pass
 
+#super class for all fixed tables
+#handles deallocation and initializing the empty table
 class FixedTable(MemoryTable):
     def __init__(self,size,parts):
         MemoryTable.__init__(self,size)
@@ -91,6 +95,9 @@ class FixedTable(MemoryTable):
         self.log += "job "+str(index)+" deallocated\n"
         self.partitions[index].free()
 
+#super class for all dynamic tables
+#handles deallocation and initializing table
+#also handles partial allocation of a partition
 class DynamicTable(MemoryTable):
     
     def __init__(self,size):
@@ -108,18 +115,21 @@ class DynamicTable(MemoryTable):
 
         self.log+="job "+str(index)+" deallocated\n"
         self.partitions[index].free()
-        if index != 0 and not self.partitions[index-1].busy:
-            self.partitions[index-1].size = self.partitions[index-1].size+self.partitions[index].size
-            self.partitions.remove(index)
-            index=index-1
-        if index != len(partitions)-1 and not self.partitions[index+1].busy:
-            self.partitions[index.size] = self.partitions[index].size + self.partitions[index+1].size
-            self.partitionns.remove(index+1)
+        if index != 0: 
+            if not self.partitions[index-1].busy:
+                self.partitions[index-1].size = self.partitions[index-1].size+self.partitions[index].size
+                self.partitions.remove(self.partitions[index])
+                index=index-1
+        if (index != len(self.partitions)-1):
+            if not self.partitions[index+1].busy:
+                self.partitions[index].size = self.partitions[index].size + self.partitions[index+1].size
+                self.partitions.remove(self.partitions[index+1])
 
     def slice(self,partition,size):
         if self.partitions[partition].size == size:
             self.partitions[partition].occupied = size
             self.partitions[partition].busy = True
+            self.partitions[partition].job_num = self.job_num
             return True
         if partition != len(self.partitions)+1:
             self.partitions.insert(partition+1, _Unit(self.partitions[partition].size-size,self.partitions[partition].start+size,num=None))
@@ -145,7 +155,7 @@ class FixedFirstTable(FixedTable):
                 self.job_num = self.job_num+1
                 self.log +="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log = self.log + "job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -168,7 +178,7 @@ class FixedBestTable(FixedTable):
             self.job_num = self.job_num+1
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -186,10 +196,10 @@ class FixedNextTable(FixedTable):
                 self.partitions[index].job_num = self.job_num
                 self.partitions[index].occupied = size
                 self.job_num = self.job_num+1
-                self._next = index+1
+                self._next = index
                 self.log+="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -212,7 +222,7 @@ class FixedWorstTable(FixedTable):
             self.job_num = self.job_num+1
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -228,7 +238,7 @@ class DynamicFirstTable(DynamicTable):
                 self.job_num = self.job_num+1
                 self.log+="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
     
@@ -250,7 +260,7 @@ class DynamicBestTable(DynamicTable):
             self.job_num = self.job_num+1
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -265,10 +275,10 @@ class DynamicNextTable(DynamicTable):
             if not self.partitions[index].busy and self.partitions[index].size >= size:
                 self.slice(index,size)
                 self.job_num = self.job_num+1
-                self._next = index+1
+                self._next = index
                 self.log+="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -290,12 +300,10 @@ class DynamicWorstTable(DynamicTable):
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
         self.log+="job "+str(self.job_num)+" queued\n"
-        self.queue.append(size)
+        self.queue.append(_Unit(None,size,self.job_num))
         self.job_num = self.job_num+1
 
-#####
-#Bar#
-#####
+#Draws the bar that represents the memory table
 class Bar():
     def __init__(self,canvas,x,y,width=50,height=400):
         self.x=x
@@ -415,17 +423,28 @@ class Application(tk.Frame):
         self.output_radio = tk.Frame(self.output,height=400,width=100)
         self.output_radio.pack(side=tk.LEFT)
         
-        tk.Radiobutton(self.output_radio,text="Fixed First",value=0,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Fixed Best",value=1,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Fixed Next",value=2,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Fixed Worst",value=3,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Dynamic First",value=4,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Dynamic Best",value=5,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Dynamic Next",value=6,indicatoron=0,width=14).pack(anchor=tk.W)
-        tk.Radiobutton(self.output_radio,text="Dynamic Worst",value=7,indicatoron=0,width=14).pack(anchor=tk.W)
-        
-        self.output_text = tk.Canvas(self.output,height=400,width=300,bg="#eeeeee")
-        self.output_text.pack(side=tk.RIGHT)
+        self.text= tk.IntVar()
+        tk.Radiobutton(self.output_radio,text="Fixed First",value=0,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Fixed Best",value=1,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Fixed Next",value=2,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Fixed Worst",value=3,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Dynamic First",value=4,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Dynamic Best",value=5,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Dynamic Next",value=6,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+        tk.Radiobutton(self.output_radio,text="Dynamic Worst",value=7,
+                indicatoron=0,width=14,command=self.update_output,variable=self.text).pack(anchor=tk.W)
+       
+        self.output_text_box = tk.Canvas(self.output,height=400,width=300,bg="#eeeeee")
+        self.output_text_box.pack(side=tk.RIGHT)
+        self.output_text = self.output_text_box.create_text(10,10,anchor="nw")
+
 
         #########
         #Buttons#
@@ -548,16 +567,16 @@ class Application(tk.Frame):
     #triggered by clicking radio buttons
     #updates text in output pain to the left of bars
     def update_output(self,event=None):
-        texts= {0:self.fixed_first.log,
-                1:self.fixed_best.log,
-                2:self.fixed_next.log,
-                3:self.fixed_worst.log,
-                4:self.dyn_first.log,
-                5:self.dyn_best.log,
-                6:self.dyn_next.log,
-                7:self.dyn_worst.log}
-
-        self.output_text["text"]="test"
+        radio= {0:self.fixed_first,
+                1:self.fixed_best,
+                2:self.fixed_next,
+                3:self.fixed_worst,
+                4:self.dyn_first,
+                5:self.dyn_best,
+                6:self.dyn_next,
+                7:self.dyn_worst}
+        out = table + "\n" + fragmentation + "\n" + queue
+        self.output_text_box.itemconfig(self.output_text,out)
 
     #triggered by pressing enter while focused on anything
     #restarts and rebuilds simulation pulling whatever is in fields as parameters 
