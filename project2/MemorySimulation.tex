@@ -1,0 +1,48 @@
+\documentclass[10pt]{article}
+\title{BinaryTreeExpressions: A Binary Tree Expression Evaluator}
+\begin{document}
+\maketitle
+\section{About}
+BinaryTreeExpressions is a program written in python 3 that uses binary trees to store represent mathematical expressions and evaluate them. BinaryTreeExpressions outputs the preordered and postordered representation of the an equation along with the binary tree and the numerical calculation of the expression
+\section{How to Use}
+There are two execution modes of BinaryTreeExpressions, a windowed graphical user interface(GUI mode) and a command line interface(CLI mode).
+\subsection{Linux}
+Dependencies
+\begin{itemize}
+\item Python 3.0 or later
+\end{itemize}
+\subsubsection{CLI mode}
+Make sure the program file is executable. If you are not sure you can make it executable with the command "chmod +x [/path/to/file]". "/Path/to/BinaryTreeExprissions.py [-h or --help]"  will output a brief help dialog. "BinaryTreeExprissions.py ["equation in quotes"]" will display the binary tree, postorder representation, preorder representation, and evaluation of the equation. CLI mode will only output the horizontal view of the tree.
+\subsubsection{GUI Mode}
+Make sure the program file is executable. If you are not sure you can make it executable with the command "chmod +x [/path/to/file]". "/Path/to/BinaryTreeExprissions.py" will launch the windowed application. Enter a valid equation in the "Equation:" field and hit submit or return on your keyboard. You can select horizontal view or vertical view before submitting the equation to select the orientation of the tree. 
+\subsection{Windows}
+Dependencies
+\begin{itemize}
+\item Python 3.0 or later
+\end{itemize}
+\subsubsection{CLI mode}
+In CMD or powershell first navigate to the folder where the program is stored by typing "cd Path\textbackslash{}to\textbackslash{}folder". "python BinaryTreeExprissions.py [-h or --help]"  will output a brief help dialog. "BinaryTreeExprissions.py ["equation in quotes"]" will display the binary tree, postorder representation, preorder representation, and evaluation of the equation. CLI mode will only output the horizontal view of the tree.
+\subsubsection{GUI Mode}
+Make sure the program file is executable. If you are not sure you can make it executable with the command "chmod +x [/path/to/file]". "python BinaryTreeExprissions.py" will launch the windowed application. Enter a valid equation in the "Equation:" field and hit submit or return on your keyboard. You can select horizontal view or vertical view before submitting the equation to select the orientation of the tree.
+\section{Valid Equation}
+A valid equation is an equation for which every bracket('(','{',or'[')  is balanced with it's corresponding closing bracket and every closing bracket is balanced with it's corresponding opening bracket. A valid equation also has an operand on each side of every operation. All whitespace is ignored.
+\subsection{Operands}
+\begin{itemize}
+\item \^{} = exponent
+\item * = multiplication
+\item / = division
+\item + = addition
+\item - = subtraction
+\end{itemize}
+\subsection{Examples}
+\begin{itemize}
+\item Valid: (1+2)*2\^{}3/5 = $(1+2)\times\frac{2^{3}}{5}$
+\item Valid: [(3+2)] = $3+2$
+\item Invalid: [(2+3])
+\item Invalid: (3+)
+\end{itemize}
+\section{Horizontal View and Vertical View}
+Horizontal and vertical view refers to the orientation of the tree that is output to the terminal or window. Vertical View is the traditional top-down representation of a tree. This mode Takes a large amount of horizontal space which is why horizontal view is the default view. In horizontal view the left most item is the root of the tree followed by its two children to the right and so on.
+\section{Contact}
+Code and manual written by Brian Fox(fox.brian59@gmail.com).
+\end{document}

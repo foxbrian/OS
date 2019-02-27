@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import random
 import time
 import math as Math
 import tkinter as tk
@@ -155,7 +156,7 @@ class FixedFirstTable(FixedTable):
                 self.job_num = self.job_num+1
                 self.log +="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log = self.log + "job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -178,7 +179,7 @@ class FixedBestTable(FixedTable):
             self.job_num = self.job_num+1
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -199,7 +200,7 @@ class FixedNextTable(FixedTable):
                 self._next = index
                 self.log+="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -222,7 +223,7 @@ class FixedWorstTable(FixedTable):
             self.job_num = self.job_num+1
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -238,7 +239,7 @@ class DynamicFirstTable(DynamicTable):
                 self.job_num = self.job_num+1
                 self.log+="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
     
@@ -260,7 +261,7 @@ class DynamicBestTable(DynamicTable):
             self.job_num = self.job_num+1
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -278,7 +279,7 @@ class DynamicNextTable(DynamicTable):
                 self._next = index
                 self.log+="job "+str(self.job_num)+" allocated\n"
                 return True
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.log+="job "+str(self.job_num)+" queued\n"
         self.job_num = self.job_num+1
 
@@ -300,7 +301,7 @@ class DynamicWorstTable(DynamicTable):
             self.log+="job "+str(self.job_num)+" allocated\n"
             return True
         self.log+="job "+str(self.job_num)+" queued\n"
-        self.queue.append(_Unit(None,size,self.job_num))
+        self.queue.append(_Unit(size,None,self.job_num))
         self.job_num = self.job_num+1
 
 #Draws the bar that represents the memory table
@@ -467,8 +468,11 @@ class Application(tk.Frame):
         self.play_button = tk.Button(self.buttons,text="Play/Pause (space)",command=self.toggle)
         self.play_button.pack(side=tk.LEFT)
 
+        self.reset_button = tk.Button(self.buttons,text="Reset (enter)",command=self.submit)
+        self.reset_button.pack(side=tk.LEFT)
 
         self.window.pack(side=tk.BOTTOM)
+        self.update_output()
         self.build_bars()
         self.draw_bars()
     
@@ -575,12 +579,33 @@ class Application(tk.Frame):
                 5:self.dyn_best,
                 6:self.dyn_next,
                 7:self.dyn_worst}
-        out = table + "\n" + fragmentation + "\n" + queue
-        self.output_text_box.itemconfig(self.output_text,out)
+
+        table = ""
+        for i,j,k in [(part.start,part.size,part.occupied) for part in radio[self.text.get()].partitions]:
+            table += str(i)+"\t"+str(j)+"\t"+str(k)+"\n"
+
+        fragmentation = 0
+        if self.text.get() < 4:
+            for part in radio[self.text.get()].partitions:
+                if part.busy:
+                    fragmentation = fragmentation + part.size-part.occupied
+        else:
+            for part in radio[self.text.get()].partitions[:-1]:
+                if not part.busy:
+                    fragmentation=fragmentation+part.size
+        fragmentation = str(fragmentation)
+
+        queue = ""
+        for i,j in [(part.job_num,part.size) for part in radio[self.text.get()].queue]:
+            queue = queue + "job " + str(i) + ":\t" + str(j) +"\n"
+
+
+        out = "Table\nStart\tSize\tOccupied\n"+table + "\nFragmentation: " + fragmentation + "\n\nJobs in Queue\t"+str(len(radio[self.text.get()].queue))+"\nJob\tSize\n" + queue
+        self.output_text_box.itemconfig(self.output_text,text=out)
 
     #triggered by pressing enter while focused on anything
     #restarts and rebuilds simulation pulling whatever is in fields as parameters 
-    def submit(self,event):
+    def submit(self,event=None):
         try:
             self.build_tables(size=int(self.total_size_field.get()),fixed=self.fixed_size_field.get())
         except:
@@ -591,34 +616,47 @@ class Application(tk.Frame):
                     self.build_tables(fixed=self.fixed_size_field.get())
                 except:
                     self.build_tables()
+        self.update_output()
+        self.build_bars()
+        self.draw_bars()
         self.play()
 
+    #randomly allocate and deallocate memory
     def play(self):
-        self.step()
         if self.playing:
-            self.after(1000,self.play)
+            coin = random.randrange(3)
+            if coin>=1:
+                self.step(size=Math.floor(random.randrange(50,300)))
+            else:
+                self.trash(Math.floor(random.randrange(self.fixed_first.job_num+1)))
+            self.after(500,self.play)
 
     def toggle(self,event=None):
         self.playing = not self.playing
         if(self.playing):
             self.play()
                   
-    def step(self,event=None):
-        size =100
-        try:
-            size = int(self.allocate_size.get())
-        except:
-            pass
+    def step(self,event=None,size=None):
+        if size == None:
+            size = 100
+            try:
+                size = int(self.allocate_size.get())
+            except:
+                pass
         self.allocate_all(size)
+        self.update_output()
         self.build_bars()
         self.draw_bars()
 
-    def trash(self):
-        try:
-            num = int(self.deallocate_size.get())
-            self.deallocate_all(num)
-        except:
-            pass
+    def trash(self,num=None):
+        if num==None:
+            try:
+                num = int(self.deallocate_size.get())
+            except:
+                return False
+        
+        self.deallocate_all(num)
+        self.update_output()
         self.build_bars()
         self.draw_bars()
 
